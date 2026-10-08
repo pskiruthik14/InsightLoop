@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSME Sentiment Intelligence & LLM Feedback Aggregator</title>
+  <meta name="description" content="Aspect-Based Sentiment Analysis and Agentic Generative AI Intelligence Platform for Micro, Small & Medium Enterprises.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="app-sidebar">
+    <div class="brand-section">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">
+        <h1>SentientMSME</h1>
+        <span>Agentic AI Intelligence</span>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item active" data-tab="dashboard">
+        <button id="nav-btn-dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Executive Dashboard</span>
+        </button>
+      </li>
+      <li class="nav-item" data-tab="reviews">
+        <button id="nav-btn-reviews">
+          <span class="nav-icon">💬</span>
+          <span>Reviews & AI Replies</span>
+        </button>
+      </li>
+      <li class="nav-item" data-tab="actions">
+        <button id="nav-btn-actions">
+          <span class="nav-icon">🎯</span>
+          <span>RCA & Action Plan</span>
+        </button>
+      </li>
+      <li class="nav-item" data-tab="playground">
+        <button id="nav-btn-playground">
+          <span class="nav-icon">🧪</span>
+          <span>Live Analysis Sandbox</span>
+        </button>
+      </li>
+      <li class="nav-item" data-tab="agents">
+        <button id="nav-btn-agents">
+          <span class="nav-icon">🤖</span>
+          <span>Agent Operations Room</span>
+        </button>
+      </li>
+      <li class="nav-item" data-tab="ingest">
+        <button id="nav-btn-ingest">
+          <span class="nav-icon">📥</span>
+          <span>Upload & Datasets</span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <div class="pulse-dot"></div>
+        <span id="agent-status-text">5 Autonomous Agents Online</span>
+      </div>
+      <button class="btn btn-secondary" style="width: 100%; font-size: 0.78rem;" id="btn-open-settings">
+        ⚙️ LLM Agent Settings
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content View -->
+  <main class="app-main">
+    
+    <!-- Top App Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <div class="active-business-badge">
+          <span>🏪 Active MSME:</span>
+          <span id="current-business-title">Artisan Bakery & Cafe</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <select id="dataset-quick-select" class="form-control" style="width: auto; padding: 6px 12px; font-size: 0.82rem;">
+          <option value="bakery">🥐 Bakery & Cafe Demo</option>
+          <option value="clothing">👗 Apparel Boutique Demo</option>
+          <option value="electronics">📱 Tech Repair MSME Demo</option>
+        </select>
+        
+        <button class="btn btn-secondary" id="btn-export-report" title="Print or save executive summary report">
+          📄 Export Report
+        </button>
+
+        <button class="theme-toggle-btn" id="btn-toggle-theme" title="Switch Theme">
+          🌓
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content Container -->
+    <div class="page-container">
+
+      <!-- TAB 1: EXECUTIVE DASHBOARD -->
+      <section id="tab-dashboard" class="tab-view active">
+        
+        <!-- Executive Digest Banner -->
+        <div class="executive-banner">
+          <div class="banner-icon-badge">🧠</div>
+          <div class="banner-content">
+            <h3>Autonomous LLM Executive Synthesis</h3>
+            <p id="digest-executive-summary">
+              Loading multi-agent customer feedback synthesis...
+            </p>
+          </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Ingested Reviews</span>
+              <span class="kpi-icon">📨</span>
+            </div>
+            <div class="kpi-value" id="kpi-total-reviews">--</div>
+            <div class="kpi-subtext">Across Google, Swiggy, Amazon & WhatsApp</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Net Sentiment Score (NSS)</span>
+              <span class="kpi-icon">📈</span>
+            </div>
+            <div class="kpi-value" id="kpi-nss-score">--</div>
+            <div class="kpi-subtext"><span class="kpi-badge positive" id="kpi-nss-badge">% Pos - % Neg</span></div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Average Rating</span>
+              <span class="kpi-icon">⭐</span>
+            </div>
+            <div class="kpi-value" id="kpi-avg-rating">--</div>
+            <div class="kpi-subtext" id="kpi-rating-stars">★★★★☆</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Critical Churn Alerts</span>
+              <span class="kpi-icon">🚨</span>
+            </div>
+            <div class="kpi-value" id="kpi-critical-alerts" style="color: var(--color-critical);">--</div>
+            <div class="kpi-subtext">Immediate action required</div>
+          </div>
+        </div>
+
+        <!-- Sentiment Analytics Row -->
+        <div class="analytics-grid">
+          <!-- Overall Polarity Visualizer -->
+          <div class="chart-card">
+            <div class="card-title-bar">
+              <h3><span>📊</span> Overall Sentiment Breakdown</h3>
+              <span class="kpi-badge positive" id="pos-percentage-badge">--% Positive</span>
+            </div>
+            <div class="sentiment-breakdown-bar">
+              <div class="bar-segment bar-pos" id="bar-pos" style="width: 50%;"></div>
+              <div class="bar-segment bar-neu" id="bar-neu" style="width: 20%;"></div>
+              <div class="bar-segment bar-neg" id="bar-neg" style="width: 30%;"></div>
+            </div>
+            <div class="breakdown-legend">
+              <div class="legend-item"><div class="legend-swatch" style="background: var(--color-pos);"></div> Positive (<span id="legend-pos-count">0</span>)</div>
+              <div class="legend-item"><div class="legend-swatch" style="background: var(--color-neu);"></div> Neutral (<span id="legend-neu-count">0</span>)</div>
+              <div class="legend-item"><div class="legend-swatch" style="background: var(--color-neg);"></div> Negative (<span id="legend-neg-count">0</span>)</div>
+            </div>
+            
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+              <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Top Voice of Customer Snippets</h4>
+              <div id="top-customer-quotes" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem;">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Aspect-Based Sentiment Progress -->
+          <div class="chart-card">
+            <div class="card-title-bar">
+              <h3><span>🔍</span> Aspect-Based Sentiment Index (ABSA)</h3>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">% Favorable</span>
+            </div>
+            <div class="aspect-list" id="aspect-progress-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 2: REVIEWS & AI REPLIES -->
+      <section id="tab-reviews" class="tab-view">
+        <div class="reviews-section">
+          <div class="card-title-bar">
+            <h3><span>💬</span> Unified Customer Review Feed & Smart AI Responder</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Real-time aggregated touchpoints</span>
+          </div>
+
+          <!-- Review Filters -->
+          <div class="reviews-filters">
+            <button class="filter-btn active" data-filter="all">All Feedback</button>
+            <button class="filter-btn" data-filter="Negative">Needs Attention (Negative)</button>
+            <button class="filter-btn" data-filter="Critical">🚨 Critical Urgency</button>
+            <button class="filter-btn" data-filter="Positive">Delighted Customers</button>
+          </div>
+
+          <!-- Review Cards Feed -->
+          <div class="feedback-cards-container" id="feedback-feed-container">
+            <!-- Dynamically populated review cards -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: RCA & MSME ACTION PLAN -->
+      <section id="tab-actions" class="tab-view">
+        <div class="reviews-section" style="margin-bottom: 24px;">
+          <div class="card-title-bar">
+            <h3><span>🔬</span> AI Root Cause Analysis (RCA) - Operational Bottlenecks</h3>
+            <span class="kpi-badge negative">Diagnosed by Autonomous Agent</span>
+          </div>
+          <div id="rca-cards-container" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- RCA Cards -->
+          </div>
+        </div>
+
+        <div class="reviews-section">
+          <div class="card-title-bar">
+            <h3><span>🎯</span> Tailored MSME Tactical Action Matrix</h3>
+            <span class="kpi-badge positive">Pragmatic, Low-Cost Interventions</span>
+          </div>
+          <div class="plan-grid" id="action-plan-grid">
+            <!-- Action Recommendation Cards -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: LIVE SANDBOX PLAYGROUND -->
+      <section id="tab-playground" class="tab-view">
+        <div class="chart-card" style="margin-bottom: 24px;">
+          <div class="card-title-bar">
+            <h3><span>🧪</span> Interactive Feedback Sandbox & Testing Bench</h3>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Test any custom customer feedback live!</span>
+          </div>
+          <form id="sandbox-form">
+            <div class="form-group">
+              <label class="form-label">Customer Feedback Text</label>
+              <textarea id="sandbox-text" class="form-control" rows="3" placeholder="Type or paste any customer review here... e.g. 'The cake was delicious but delivery was 40 minutes late and box was slightly bent.'" required></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 16px;">
+              <div>
+                <label class="form-label">Platform Source</label>
+                <select id="sandbox-source" class="form-control">
+                  <option value="Google Reviews">Google Reviews</option>
+                  <option value="Amazon">Amazon</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Swiggy / Zomato">Swiggy / Zomato</option>
+                  <option value="In-Store Feedback">In-Store Direct</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Customer Name</label>
+                <input type="text" id="sandbox-customer" class="form-control" value="Ankit Mehta" placeholder="Customer name">
+              </div>
+              <div>
+                <label class="form-label">Star Rating (Optional)</label>
+                <select id="sandbox-rating" class="form-control">
+                  <option value="5">⭐⭐⭐⭐⭐ (5 Stars)</option>
+                  <option value="4">⭐⭐⭐⭐ (4 Stars)</option>
+                  <option value="3">⭐⭐⭐ (3 Stars)</option>
+                  <option value="2">⭐⭐ (2 Stars)</option>
+                  <option value="1">⭐ (1 Star)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-run-sandbox">
+              ⚡ Execute Multi-Agent Analysis
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Sandbox Result Preview -->
+        <div id="sandbox-results-card" class="chart-card" style="display: none;">
+          <div class="card-title-bar">
+            <h3><span>✨</span> Instant Agent Intelligence Output</h3>
+            <span id="sandbox-sentiment-badge" class="kpi-badge positive">Positive</span>
+          </div>
+          <div id="sandbox-output-content">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: AGENT OPERATIONS ROOM -->
+      <section id="tab-agents" class="tab-view">
+        <div class="chart-card" style="margin-bottom: 24px;">
+          <div class="card-title-bar">
+            <h3><span>🤖</span> Multi-Agent Autonomous Architecture</h3>
+            <span class="status-indicator"><span class="pulse-dot"></span> Pipeline Active</span>
+          </div>
+
+          <div class="agents-workflow-visualizer">
+            <div class="agent-node active-pulse">
+              <div class="agent-avatar-icon">📥</div>
+              <div class="agent-title">Aggregator Agent</div>
+              <div class="agent-role">Multi-channel ingestion & noise filtering</div>
+            </div>
+            <div class="agent-node active-pulse">
+              <div class="agent-avatar-icon">🔍</div>
+              <div class="agent-title">Sentiment & ABSA</div>
+              <div class="agent-role">Aspect polarity & urgency triage</div>
+            </div>
+            <div class="agent-node active-pulse">
+              <div class="agent-avatar-icon">🔬</div>
+              <div class="agent-title">Root Cause (RCA)</div>
+              <div class="agent-role">Systemic failure mode clustering</div>
+            </div>
+            <div class="agent-node active-pulse">
+              <div class="agent-avatar-icon">🎯</div>
+              <div class="agent-title">Action Planner</div>
+              <div class="agent-role">Low-budget MSME tactical roadmap</div>
+            </div>
+            <div class="agent-node active-pulse">
+              <div class="agent-avatar-icon">✍️</div>
+              <div class="agent-title">Empathetic Responder</div>
+              <div class="agent-role">Contextual customer reply drafting</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="card-title-bar">
+            <h3><span>🖥️</span> Real-Time Agent Execution Stream & Thought Logs</h3>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;" id="btn-refresh-logs">🔄 Refresh</button>
+          </div>
+          <div class="terminal-console" id="agent-console-stream">
+            <!-- Real-time log entries -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: UPLOAD & DATASETS -->
+      <section id="tab-ingest" class="tab-view">
+        <div class="chart-card" style="margin-bottom: 24px;">
+          <div class="card-title-bar">
+            <h3><span>📤</span> Ingest Custom Customer Feedback (CSV / Excel)</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Supports standard columns (review, rating, date, platform)</span>
+          </div>
+          <form id="upload-csv-form">
+            <div class="form-group">
+              <label class="form-label">Enterprise / Store Name</label>
+              <input type="text" id="upload-business-name" class="form-control" placeholder="e.g. Apex Handmade Crafts" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Select File (.csv, .xlsx)</label>
+              <input type="file" id="upload-file-input" class="form-control" accept=".csv,.xlsx,.xls" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-submit-upload">
+              🚀 Ingest & Run Full Agent Analysis
+            </button>
+          </form>
+        </div>
+
+        <div class="chart-card">
+          <div class="card-title-bar">
+            <h3><span>📂</span> Pre-Configured MSME Benchmark Datasets</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Instant one-click loading</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div class="plan-card">
+              <h4>🥐 Artisan Bakery & Cafe</h4>
+              <p>12 reviews covering pastries, sourdough, delivery spillage, hygiene review, and pricing.</p>
+              <button class="btn btn-secondary btn-load-preloaded" data-dataset="bakery">Load Bakery Demo</button>
+            </div>
+            <div class="plan-card">
+              <h4>👗 Handloom & Apparel Boutique</h4>
+              <p>Reviews covering fabric durability, color bleeding, rain-damaged parcel, and custom sizing.</p>
+              <button class="btn btn-secondary btn-load-preloaded" data-dataset="clothing">Load Apparel Demo</button>
+            </div>
+            <div class="plan-card">
+              <h4>📱 Local Tech & Gadget Repair</h4>
+              <p>Reviews covering phone/laptop repair, turnaround speeds, parts warranty, and billing disputes.</p>
+              <button class="btn btn-secondary btn-load-preloaded" data-dataset="electronics">Load Tech Repair Demo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- LLM Configuration Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚙️ LLM & Agent Backend Configuration</h3>
+        <button class="close-btn" id="btn-close-modal">&times;</button>
+      </div>
+      <form id="llm-config-form">
+        <div class="form-group">
+          <label class="form-label">AI Execution Provider</label>
+          <select id="config-provider-select" class="form-control">
+            <option value="hybrid">🌟 Autonomous Hybrid Mode (Instant Offline AI + Fallback)</option>
+            <option value="gemini">Google Gemini API (Gemini 1.5 Flash)</option>
+            <option value="openai">OpenAI API (GPT-4o Mini)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Key (Optional for Hybrid Mode)</label>
+          <input type="password" id="config-api-key" class="form-control" placeholder="Enter API Key if using Gemini or OpenAI">
+          <small style="color: var(--text-dim); display: block; margin-top: 4px;">
+            Note: Hybrid Mode operates 100% offline out-of-the-box without needing API keys.
+          </small>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-settings">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Configuration</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
