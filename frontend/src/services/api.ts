@@ -245,7 +245,7 @@ export const api = {
   getSettings: () =>
     request<{ business: Business; settings: Settings }>('/settings'),
 
-  updateSettings: (data: Partial<Settings> & { gemini_api_key?: string; openai_api_key?: string }) =>
+  updateSettings: (data: Partial<Settings> & { mistral_api_key?: string; gemini_api_key?: string; openai_api_key?: string }) =>
     request<{ status: string }>('/settings', {
       method: 'PUT',
       body: JSON.stringify(data),

@@ -12,6 +12,7 @@ import uuid
 
 from backend.database import get_db_connection
 from backend.routes.auth import get_current_user_context
+from backend.services.ai.llm_providers import ai_service
 
 router = APIRouter(prefix="/api/reports", tags=["Reports"])
 
@@ -46,7 +47,7 @@ def list_reports(ctx: dict = Depends(get_current_user_context)):
 
 
 @router.post("/generate")
-def generate_report(req: GenerateReportRequest, ctx: dict = Depends(get_current_user_context)):
+async def generate_report(req: GenerateReportRequest, ctx: dict = Depends(get_current_user_context)):
     biz_id = ctx["business_id"]
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -103,12 +104,21 @@ def generate_report(req: GenerateReportRequest, ctx: dict = Depends(get_current_
     }
 
     title = type_titles.get(req.report_type, "Customer Sentiment Intelligence Report")
-    summary = (
-        f"During this period, {total} customer reviews were processed across all channels. "
-        f"Customer satisfaction reached {pos_pct}% positive polarity with an average rating of {round(totals['avg_rating'] or 0, 1)}/5.0. "
-        f"The primary operational friction point identified is late delivery during evening peak hours (7:00 PM - 9:30 PM), "
-        f"accounting for {issues[0]['feedback_count'] if issues else 104} customer complaints."
-    )
+    
+    # Generate executive summary via Mistral AI if available
+    summary = None
+    if ai_service.mistral_key:
+        sys_prompt = "You are a customer intelligence analyst writing an executive summary for an MSME report. Keep it concise (2-3 sentences), data-grounded, and action-oriented."
+        user_prompt = f"Report: {title}\nTotal Reviews: {total}\nPositive: {pos_pct}%\nNegative: {neg_pct}%\nTop Issues: {', '.join([i['name'] for i in issues[:2]])}"
+        summary = await ai_service.generate_text(sys_prompt, user_prompt, max_tokens=150)
+
+    if not summary:
+        summary = (
+            f"During this period, {total} customer reviews were processed across all channels. "
+            f"Customer satisfaction reached {pos_pct}% positive polarity with an average rating of {round(totals['avg_rating'] or 0, 1)}/5.0. "
+            f"The primary operational friction point identified is late delivery during evening peak hours (7:00 PM - 9:30 PM), "
+            f"accounting for {issues[0]['feedback_count'] if issues else 104} customer complaints."
+        )
 
     metrics = {
         "total_reviews": total,

@@ -29,7 +29,9 @@ CRITICAL_ALERT_KEYWORDS = [
 ]
 
 # Default API configuration
-DEFAULT_LLM_PROVIDER = os.getenv("LLM_PROVIDER", "hybrid")
+DEFAULT_LLM_PROVIDER = os.getenv("AI_PROVIDER", os.getenv("LLM_PROVIDER", "mistral"))
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "mstrl_Lwa7aZs40NyowbdWxhXJjPRQkgp4kOWa_43zD43")
+MISTRAL_MODEL = os.getenv("MISTRAL_MODEL", "open-mistral-7b")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 PORT = int(os.getenv("PORT", 8000))

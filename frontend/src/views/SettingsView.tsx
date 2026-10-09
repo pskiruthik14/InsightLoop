@@ -35,7 +35,8 @@ export const SettingsView: React.FC = () => {
   const [bizGoal, setBizGoal] = useState('');
 
   // AI Configuration
-  const [aiProvider, setAiProvider] = useState('hybrid');
+  const [aiProvider, setAiProvider] = useState('mistral');
+  const [mistralKey, setMistralKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [anthropicKey, setAnthropicKey] = useState('');
@@ -60,7 +61,7 @@ export const SettingsView: React.FC = () => {
       setBizCategory(res.business?.category || '');
       setBizSize(res.business?.size || '10-49 employees');
       setBizGoal(res.business?.primary_goal || '');
-      setAiProvider(res.settings.ai_provider || 'hybrid');
+      setAiProvider(res.settings.ai_provider || 'mistral');
       setMaskPii(Boolean(res.settings.mask_pii));
 
       const teamRes = await api.getTeam();
@@ -102,6 +103,7 @@ export const SettingsView: React.FC = () => {
     try {
       await api.updateSettings({
         ai_provider: aiProvider,
+        mistral_api_key: mistralKey || undefined,
         gemini_api_key: geminiKey || undefined,
         openai_api_key: openaiKey || undefined,
       });
@@ -253,52 +255,65 @@ export const SettingsView: React.FC = () => {
           {/* AI Configuration Tab (Section 14 & 48) */}
           {activeTab === 'ai' && (
             <Card title="AI Intelligence Provider Configuration" subtitle="Configure provider abstraction layer with automatic deterministic fallback">
-              <form onSubmit={handleSaveAiConfig} className="space-y-4 text-xs">
-                <div className="p-3 rounded-lg bg-indigo-50/60 border border-indigo-200 text-indigo-950 space-y-1">
-                  <p className="font-semibold">Provider Abstraction Guarantee:</p>
-                  <p className="text-[11px] text-slate-700 leading-relaxed">
-                    InsightLoop supports <strong>Google Gemini</strong>, <strong>OpenAI GPT-4o-mini</strong>, and <strong>Local Rule-Based ABSA</strong>. If external API keys are omitted or rate-limited, the system falls back to the deterministic multilingual rule engine without downtime.
+              <form onSubmit={handleSaveAiConfig} className="space-y-4 text-xs font-sans">
+                <div className="p-4 rounded-2xl bg-[#EDF1EB] border border-[#8C9A84]/40 text-[#2D3A31] space-y-1.5">
+                  <p className="font-serif font-semibold text-sm">Mistral AI Intelligence Activated:</p>
+                  <p className="text-xs text-[#5A695E] leading-relaxed">
+                    InsightLoop is powered by <strong>Mistral AI</strong> (<code>open-mistral-7b</code>) with native support for multilingual Tanglish, Tamil, Hindi, and English analysis, Aspect-Based Sentiment, and conversational data Q&A.
                   </p>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Active AI Engine</label>
+                  <label className="block font-medium text-[#2D3A31] mb-1.5">Active AI Engine</label>
                   <select
                     value={aiProvider}
                     onChange={(e) => setAiProvider(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white"
+                    className="w-full px-4 py-2.5 rounded-full border border-[#E6E2DA] bg-white text-[#2D3A31] focus:ring-2 focus:ring-[#8C9A84]"
                   >
-                    <option value="hybrid">Hybrid Engine (Gemini / OpenAI with Offline Rule Fallback)</option>
+                    <option value="mistral">Mistral AI (open-mistral-7b) [Active & Configured]</option>
+                    <option value="hybrid">Hybrid Engine (Mistral / Gemini / OpenAI with Offline Rule Fallback)</option>
                     <option value="gemini">Google Gemini API (gemini-1.5-flash)</option>
                     <option value="openai">OpenAI API (gpt-4o-mini)</option>
-                    <option value="anthropic">Anthropic Claude</option>
                     <option value="rule_based">Deterministic Rule & Linguistic ABSA Engine (Zero API Cost)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Google Gemini API Key {settings?.has_gemini_key && <span className="text-emerald-600 font-normal">(Configured ✓)</span>}
+                  <label className="block font-medium text-[#2D3A31] mb-1.5">
+                    Mistral AI API Key {(settings?.has_mistral_key || mistralKey) && <span className="text-[#4D6347] font-semibold">(Configured & Active ✓)</span>}
+                  </label>
+                  <input
+                    type="password"
+                    value={mistralKey}
+                    onChange={(e) => setMistralKey(e.target.value)}
+                    placeholder="mstrl_Lwa7aZs40NyowbdWxhXJjPRQkgp4kOWa_43zD43"
+                    className="w-full px-4 py-2.5 rounded-full border border-[#E6E2DA] font-mono text-xs bg-white text-[#2D3A31] focus:ring-2 focus:ring-[#8C9A84]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-[#2D3A31] mb-1.5">
+                    Google Gemini API Key {settings?.has_gemini_key && <span className="text-[#4D6347] font-semibold">(Configured ✓)</span>}
                   </label>
                   <input
                     type="password"
                     value={geminiKey}
                     onChange={(e) => setGeminiKey(e.target.value)}
                     placeholder="AIzaSy..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 font-mono text-xs"
+                    className="w-full px-4 py-2.5 rounded-full border border-[#E6E2DA] font-mono text-xs bg-white text-[#2D3A31] focus:ring-2 focus:ring-[#8C9A84]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    OpenAI API Key {settings?.has_openai_key && <span className="text-emerald-600 font-normal">(Configured ✓)</span>}
+                  <label className="block font-medium text-[#2D3A31] mb-1.5">
+                    OpenAI API Key {settings?.has_openai_key && <span className="text-[#4D6347] font-semibold">(Configured ✓)</span>}
                   </label>
                   <input
                     type="password"
                     value={openaiKey}
                     onChange={(e) => setOpenaiKey(e.target.value)}
                     placeholder="sk-..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 font-mono text-xs"
+                    className="w-full px-4 py-2.5 rounded-full border border-[#E6E2DA] font-mono text-xs bg-white text-[#2D3A31] focus:ring-2 focus:ring-[#8C9A84]"
                   />
                 </div>
 

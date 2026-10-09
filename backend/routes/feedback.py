@@ -415,12 +415,12 @@ def update_feedback_status(
 
 
 @router.post("/{feedback_id}/reply")
-def generate_review_reply(
+async def generate_review_reply(
     feedback_id: str,
     req: GenerateReplyRequest,
     ctx: dict = Depends(get_current_user_context)
 ):
-    """Generates empathetic, professional, enthusiastic, or promotional review response."""
+    """Generates empathetic, professional, enthusiastic, or promotional review response using Mistral AI."""
     biz_id = ctx["business_id"]
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -441,7 +441,33 @@ def generate_review_reply(
     product = row["product_name"] or "our offering"
     sentiment = row["sentiment"]
     tone = req.tone.lower()
+    customer_msg = row["message"] or ""
 
+    # Attempt AI response generation via Mistral
+    system_prompt = (
+        f"You are an empathetic customer experience manager for a local business. "
+        f"Draft a personalized, respectful, and concise response to the customer in a '{tone}' tone. "
+        f"Directly acknowledge the customer's specific comments and maintain accountability and warmth. "
+        f"Do not include placeholders like '[Your Name]'. Keep it under 75 words."
+    )
+    user_prompt = (
+        f"Customer: {cust_name}\n"
+        f"Product/Service: {product}\n"
+        f"Rating: {row['rating']}/5\n"
+        f"Sentiment: {sentiment}\n"
+        f"Customer Message: \"{customer_msg}\""
+    )
+
+    ai_reply = await ai_service.generate_text(system_prompt, user_prompt, max_tokens=200)
+    if ai_reply:
+        return {
+            "feedback_id": feedback_id,
+            "tone": tone,
+            "draft_response": ai_reply,
+            "ai_generated": True
+        }
+
+    # Deterministic fallback template
     if sentiment == "Negative":
         if tone == "empathetic":
             reply = (
@@ -482,5 +508,6 @@ def generate_review_reply(
     return {
         "feedback_id": feedback_id,
         "tone": tone,
-        "draft_response": reply
+        "draft_response": reply,
+        "ai_generated": False
     }

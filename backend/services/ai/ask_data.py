@@ -1,19 +1,23 @@
 """
 Ask Your Data Service: Evidence-Based Conversational Analytics.
 Translates business questions into real database queries, retrieves factual statistics,
-and generates explainable insights with direct customer feedback citations.
+and generates explainable insights with direct customer feedback citations using Mistral AI.
 Never hallucinates statistics.
 """
 import sqlite3
 import json
+import logging
 from typing import Dict, Any, List, Optional
 from backend.database import get_db_connection
+from backend.services.ai.llm_providers import ai_service
+
+logger = logging.getLogger("InsightLoopAsk")
 
 
 class AskDataService:
-    def process_query(self, business_id: str, query: str) -> Dict[str, Any]:
+    async def process_query(self, business_id: str, query: str) -> Dict[str, Any]:
         """
-        Executes real data aggregations and builds an evidence-backed answer.
+        Executes real data aggregations and builds an evidence-backed answer using Mistral AI.
         """
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -85,17 +89,86 @@ class AskDataService:
 
         conn.close()
 
-        # Determine Query Intent & Assemble Evidence
-        evidence = []
+        # Collect raw evidence quotes
+        evidence: List[str] = []
+        if issues:
+            for iss in issues[:2]:
+                if iss["evidence_quotes"]:
+                    try:
+                        q_list = json.loads(iss["evidence_quotes"])
+                        evidence.extend(q_list[:2])
+                    except Exception:
+                        pass
+        if not evidence:
+            evidence = [
+                f"{pos_cnt} positive reviews commending quality and staff hospitality.",
+                f"{neg_cnt} negative reviews requiring operational follow-up.",
+                "Real-time feedback monitoring active across all outlets."
+            ]
+
+        # 1. Try Mistral AI for dynamic conversational intelligence
+        if ai_service.mistral_key:
+            try:
+                system_prompt = (
+                    "You are InsightLoop's senior customer intelligence analyst for MSMEs. "
+                    "Answer the business owner's question using the factual database numbers provided below. "
+                    "Do not invent statistics. Quote exact customer evidence where relevant. "
+                    "Format response as JSON with keys: 'title' (string), 'answer' (detailed markdown string), 'recommended_action' (concise string)."
+                )
+
+                data_context = {
+                    "total_reviews": total_feedback,
+                    "average_rating": avg_rating,
+                    "sentiment_distribution": {
+                        "positive": f"{pos_pct}% ({pos_cnt} reviews)",
+                        "neutral": f"{neu_pct}% ({neu_cnt} reviews)",
+                        "negative": f"{neg_pct}% ({neg_cnt} reviews)"
+                    },
+                    "top_issues": [
+                        {
+                            "name": i["name"],
+                            "topic": i["topic"],
+                            "complaints": i["feedback_count"],
+                            "negative_pct": f"{i['sentiment_negative_pct']}%",
+                            "root_cause": i["root_cause_summary"]
+                        }
+                        for i in issues[:4]
+                    ],
+                    "sample_customer_quotes": evidence[:3],
+                    "lowest_rated_product": products_low_to_high[0]["product_name"] if products_low_to_high else None,
+                    "highest_rated_product": products_low_to_high[-1]["product_name"] if products_low_to_high else None,
+                }
+
+                user_prompt = f"Business Question: \"{query}\"\n\nFactual Verified Database Context:\n{json.dumps(data_context, indent=2)}"
+
+                mistral_res = await ai_service._call_mistral_json(user_prompt, system_prompt)
+                if mistral_res and "answer" in mistral_res:
+                    return {
+                        "query": query,
+                        "title": mistral_res.get("title", "AI Customer Intelligence Analysis"),
+                        "answer": mistral_res.get("answer"),
+                        "evidence": evidence[:3],
+                        "recommended_action": mistral_res.get("recommended_action", "Review feedback inbox and assign high-priority cases."),
+                        "ai_powered": True,
+                        "provider": "Mistral AI",
+                        "data_summary": {
+                            "total_feedback": total_feedback,
+                            "average_rating": avg_rating,
+                            "positive_percentage": pos_pct,
+                            "negative_percentage": neg_pct,
+                            "neutral_percentage": neu_pct
+                        }
+                    }
+            except Exception as e:
+                logger.warning(f"Mistral AI ask_data failed, falling back to deterministic analytics: {e}")
+
+        # 2. Deterministic Rule-Based Analysis Fallback
         answer_title = "Data Intelligence Summary"
         answer_body = ""
         recommended_action = ""
 
         if any(w in query_lower for w in ["why", "fell", "fall", "decrease", "drop", "change", "worse"]):
-            # Reason for sentiment drop / negative sentiment
             top_issue = issues[0] if issues else None
-            neg_topic = next((t for t in topics if t["negative_count"] > 15), topics[0] if topics else None)
-            
             quotes = json.loads(top_issue["evidence_quotes"]) if top_issue and top_issue["evidence_quotes"] else []
             evidence = quotes[:3]
             answer_title = f"Root Cause: Sentiment Pressure from {top_issue['topic'] if top_issue else 'Delivery'}"
@@ -109,7 +182,6 @@ class AskDataService:
             recommended_action = "Deploy a dedicated evening dispatch buffer and implement real-time rider dispatch alarms."
 
         elif any(w in query_lower for w in ["complaining", "complaint", "issue", "problem", "dislike", "hate"]):
-            # What are customers complaining about?
             top_issue_list = issues[:3]
             answer_title = "Top Customer Complaints & Friction Points"
             complaint_summaries = []
@@ -128,11 +200,10 @@ class AskDataService:
             recommended_action = "Focus first on Issue #1 (Delivery Peak-Hour Buffering) and Issue #2 (Spill-Proof Cup Seals)."
 
         elif any(w in query_lower for w in ["product", "item", "dish", "food", "menu"]):
-            # Which product has the worst / best feedback?
             if products_low_to_high:
                 worst_prod = products_low_to_high[0]
                 best_prod = products_low_to_high[-1]
-                answer_title = f"Product Sentiment Analysis"
+                answer_title = "Product Sentiment Analysis"
                 answer_body = (
                     f"Across your product catalogue:\n\n"
                     f"- **Highest Customer Friction:** '{worst_prod['product_name']}' with an average rating of {round(worst_prod['avg_r'], 1)}/5.0 and {worst_prod['neg_cnt']} negative reviews (primarily packaging spills and temperature during transit).\n"
@@ -147,7 +218,6 @@ class AskDataService:
                 answer_body = "Product reviews are evenly distributed with high quality scores."
 
         elif any(w in query_lower for w in ["first", "recommend", "action", "priority", "what should i fix"]):
-            # What should the business fix first?
             answer_title = "Immediate Priority Action Recommendation"
             answer_body = (
                 f"Based on our Priority Formula (Severity × Frequency × Recency × Trend), your #1 urgent priority is:\n\n"
@@ -163,7 +233,6 @@ class AskDataService:
             recommended_action = "Execute the 3-step action checklist detailed in the Recommendations tab."
 
         elif any(w in query_lower for w in ["delivery", "late", "rider", "transit"]):
-            # Delivery specific summary
             deliv_topic = next((t for t in topics if "Delivery" in t["name"]), None)
             answer_title = "Delivery & Logistics Operational Review"
             answer_body = (
@@ -176,7 +245,6 @@ class AskDataService:
             recommended_action = "Cap delivery zone radius to 6km during peak dinner hours."
 
         else:
-            # General health / overview query
             answer_title = f"InsightLoop Overall Health Summary ({total_feedback} Reviews)"
             answer_body = (
                 f"Your business has recorded {total_feedback} customer feedbacks with an overall customer sentiment of "
@@ -186,9 +254,9 @@ class AskDataService:
                 f"while dissatisfaction is concentrated in **Delivery Delays** and **Packaging Spills**."
             )
             evidence = [
-                f"{pos_cnt} positive reviews Commending taste and staff hospitality.",
+                f"{pos_cnt} positive reviews commending taste and staff hospitality.",
                 f"{neg_cnt} negative reviews requiring operational follow-up.",
-                f"Active alert triggered for Salem & Coimbatore delivery delay spikes."
+                "Active alert triggered for Salem & Coimbatore delivery delay spikes."
             ]
             recommended_action = "Review Critical Alerts and delegate customer response follow-ups in the Feedback Inbox."
 
@@ -198,6 +266,8 @@ class AskDataService:
             "answer": answer_body,
             "evidence": evidence,
             "recommended_action": recommended_action,
+            "ai_powered": False,
+            "provider": "Rule Engine",
             "data_summary": {
                 "total_feedback": total_feedback,
                 "average_rating": avg_rating,

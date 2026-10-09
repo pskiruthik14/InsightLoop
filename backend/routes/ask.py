@@ -17,10 +17,10 @@ class AskDataRequest(BaseModel):
 
 
 @router.post("")
-def ask_question(req: AskDataRequest, ctx: dict = Depends(get_current_user_context)):
+async def ask_question(req: AskDataRequest, ctx: dict = Depends(get_current_user_context)):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be blank.")
 
     biz_id = ctx["business_id"]
-    result = ask_data_service.process_query(biz_id, req.query.strip())
+    result = await ask_data_service.process_query(biz_id, req.query.strip())
     return result

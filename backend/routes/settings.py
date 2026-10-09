@@ -18,6 +18,7 @@ router = APIRouter(prefix="/api/settings", tags=["Settings"])
 class UpdateSettingsRequest(BaseModel):
     mask_pii: Optional[bool] = None
     ai_provider: Optional[str] = None
+    mistral_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
@@ -72,6 +73,7 @@ def get_settings(ctx: dict = Depends(get_current_user_context)):
             "alert_rating_threshold": settings_row["alert_rating_threshold"] if settings_row else 3.2,
             "notification_email": settings_row["notification_email"] if settings_row else "owner@artisanroastery.com",
             "auto_triage": bool(settings_row["auto_triage"]) if settings_row else True,
+            "has_mistral_key": bool(ai_service.mistral_key),
             "has_gemini_key": bool(ai_service.gemini_key),
             "has_openai_key": bool(ai_service.openai_key),
             "has_anthropic_key": bool(ai_service.anthropic_key)
@@ -97,6 +99,7 @@ def update_settings(req: UpdateSettingsRequest, ctx: dict = Depends(get_current_
         params.append(req.ai_provider)
         ai_service.update_config(
             provider=req.ai_provider,
+            mistral_key=req.mistral_api_key,
             gemini_key=req.gemini_api_key,
             openai_key=req.openai_api_key,
             anthropic_key=req.anthropic_api_key

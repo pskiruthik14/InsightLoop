@@ -222,6 +222,7 @@ export interface Settings {
   alert_rating_threshold: number;
   notification_email: string;
   auto_triage: boolean;
+  has_mistral_key?: boolean;
   has_gemini_key: boolean;
   has_openai_key: boolean;
   has_anthropic_key: boolean;
