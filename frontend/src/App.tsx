@@ -53,10 +53,21 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400 text-xs font-sans">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 rounded border-2 border-indigo-500 border-t-transparent animate-spin" />
-          <span>Starting InsightLoop Intelligence Workspace...</span>
+      <div className="min-h-screen bg-[#F9F8F4] flex items-center justify-center text-[#2D3A31] text-sm font-serif">
+        {/* Paper Grain Overlay */}
+        <div
+          className="pointer-events-none fixed inset-0 z-50 opacity-[0.015]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+          }}
+        />
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-10 h-10 rounded-full border-2 border-[#8C9A84] border-t-transparent animate-spin" />
+          <div>
+            <h2 className="font-serif font-semibold text-lg text-[#2D3A31]">InsightLoop</h2>
+            <p className="font-sans text-xs text-[#8C9A84] tracking-wide mt-1">Cultivating customer intelligence...</p>
+          </div>
         </div>
       </div>
     );
@@ -79,7 +90,15 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F9F8F4] text-[#2D3A31] flex flex-col font-sans relative selection:bg-[#DCCFC2] selection:text-[#2D3A31]">
+      {/* Paper Grain Texture (Botanical Essence) */}
+      <div
+        className="pointer-events-none fixed inset-0 z-50 opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Persistent Sidebar */}
         <div className="hidden lg:flex shrink-0">

@@ -18,21 +18,21 @@ export const Card: React.FC<CardProps> = ({
   bodyClassName = '',
 }) => {
   return (
-    <div className={`bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden ${className}`}>
+    <div className={`bg-white/95 rounded-3xl border border-[#E6E2DA] shadow-[0_4px_24px_-4px_rgba(45,58,49,0.05)] hover:shadow-[0_8px_32px_-6px_rgba(45,58,49,0.08)] transition-all duration-500 ease-out overflow-hidden ${className}`}>
       {(title || action) && (
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
+        <div className="px-6 py-4.5 border-b border-[#E6E2DA]/70 flex items-center justify-between gap-4 bg-[#F9F8F4]/50">
           <div>
             {title && typeof title === 'string' ? (
-              <h3 className="font-semibold text-slate-900 text-sm">{title}</h3>
+              <h3 className="font-serif font-semibold text-[#2D3A31] text-base tracking-tight">{title}</h3>
             ) : (
               title
             )}
-            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="font-sans text-xs text-[#8C9A84] mt-0.5">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
       )}
-      <div className={`p-5 ${bodyClassName}`}>{children}</div>
+      <div className={`p-6 ${bodyClassName}`}>{children}</div>
     </div>
   );
 };

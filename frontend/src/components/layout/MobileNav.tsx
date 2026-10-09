@@ -26,14 +26,15 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" onClick={onClose} />
-      <div className="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col shadow-2xl z-10">
-        <div className="absolute top-3.5 right-3">
+      <div className="fixed inset-0 bg-[#2D3A31]/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-y-0 left-0 w-64 bg-[#1F2922] flex flex-col shadow-2xl z-10 border-r border-[#2D3A31]">
+        <div className="absolute top-4 right-3 z-20">
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-white cursor-pointer"
+            className="p-1.5 rounded-full text-[#8C9A84] hover:text-[#F9F8F4] hover:bg-[#2D3A31] transition-colors cursor-pointer"
+            aria-label="Close navigation"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
         </div>
         <Sidebar

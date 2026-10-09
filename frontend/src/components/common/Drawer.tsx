@@ -41,23 +41,24 @@ export const Drawer: React.FC<DrawerProps> = ({
   }[width];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-[#2D3A31]/40 backdrop-blur-sm">
       <div className="absolute inset-0" onClick={onClose} />
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className={`w-screen ${widthClasses} bg-white shadow-2xl border-l border-slate-200 flex flex-col`}>
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className={`w-screen ${widthClasses} bg-[#F9F8F4] shadow-[0_0_50px_rgba(45,58,49,0.15)] border-l border-[#E6E2DA] flex flex-col`}>
+          <div className="px-7 py-5 border-b border-[#E6E2DA] bg-white/80 flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-slate-900 text-base">{title}</h3>
-              {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+              <h3 className="font-serif font-semibold text-[#2D3A31] text-lg tracking-tight">{title}</h3>
+              {subtitle && <p className="font-sans text-xs text-[#8C9A84] mt-0.5">{subtitle}</p>}
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full text-[#8C9A84] hover:text-[#2D3A31] hover:bg-[#F2EDE6] transition-colors cursor-pointer"
+              aria-label="Close drawer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" strokeWidth={1.5} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-6">{children}</div>
+          <div className="flex-1 overflow-y-auto p-7">{children}</div>
         </div>
       </div>
     </div>

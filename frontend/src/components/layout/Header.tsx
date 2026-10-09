@@ -24,24 +24,25 @@ export const Header: React.FC<HeaderProps> = ({
   activeAlertCount = 0,
 }) => {
   return (
-    <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-0 z-30">
+    <header className="h-16 bg-[#F9F8F4]/85 backdrop-blur-md border-b border-[#E6E2DA] px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-0 z-30 transition-all">
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <button
           onClick={onToggleMobileNav}
-          className="lg:hidden p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+          className="lg:hidden p-2 -ml-2 rounded-full text-[#2D3A31] hover:bg-[#F2EDE6] cursor-pointer"
+          aria-label="Toggle navigation menu"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5" strokeWidth={1.5} />
         </button>
 
         {/* Global Search Bar */}
         <div className="relative w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#8C9A84] absolute left-3.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search feedback, topics, customers, products..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-white/90 border border-[#E6E2DA] rounded-full placeholder-[#8C9A84] text-[#2D3A31] focus:outline-none focus:ring-2 focus:ring-[#8C9A84] transition-all"
           />
         </div>
       </div>
@@ -51,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
         <Button
           variant="outline"
           size="sm"
-          leftIcon={<MessageSquareCode className="w-3.5 h-3.5 text-indigo-600" />}
+          leftIcon={<MessageSquareCode className="w-3.5 h-3.5 text-[#4D6347]" strokeWidth={1.5} />}
           onClick={onOpenAskDrawer}
           className="hidden md:inline-flex"
         >
@@ -61,7 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
         <Button
           variant="outline"
           size="sm"
-          leftIcon={<Upload className="w-3.5 h-3.5 text-slate-600" />}
+          leftIcon={<Upload className="w-3.5 h-3.5 text-[#5A695E]" strokeWidth={1.5} />}
           onClick={onOpenImportModal}
           className="hidden sm:inline-flex"
         >
@@ -71,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
         <Button
           variant="primary"
           size="sm"
-          leftIcon={<Plus className="w-3.5 h-3.5" />}
+          leftIcon={<Plus className="w-3.5 h-3.5" strokeWidth={1.5} />}
           onClick={onOpenAddModal}
         >
           Add Feedback
@@ -79,12 +80,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenAlerts}
-          className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="relative p-2 rounded-full text-[#8C9A84] hover:text-[#2D3A31] hover:bg-[#F2EDE6] transition-colors cursor-pointer"
           title="Active Alerts"
+          aria-label="View alerts"
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-4 h-4" strokeWidth={1.5} />
           {activeAlertCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#C27B66]" />
           )}
         </button>
       </div>

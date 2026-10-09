@@ -1,21 +1,50 @@
 @import "tailwindcss";
 
+@theme {
+  --color-forest: #2D3A31;
+  --color-forest-dark: #1E2721;
+  --color-forest-light: #3D4D42;
+  --color-sage: #8C9A84;
+  --color-sage-light: #A3B09C;
+  --color-sage-subtle: #EDF1EB;
+  --color-clay: #DCCFC2;
+  --color-clay-light: #F2EDE6;
+  --color-alabaster: #F9F8F4;
+  --color-stone: #E6E2DA;
+  --color-stone-dark: #C8C3B8;
+  --color-terracotta: #C27B66;
+  --color-terracotta-dark: #AA6552;
+  --color-terracotta-subtle: #FBF0ED;
+  
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --shadow-botanical-sm: 0 4px 6px -1px rgba(45, 58, 49, 0.05);
+  --shadow-botanical-md: 0 10px 15px -3px rgba(45, 58, 49, 0.05);
+  --shadow-botanical-lg: 0 20px 40px -10px rgba(45, 58, 49, 0.05);
+  --shadow-botanical-xl: 0 25px 50px -12px rgba(45, 58, 49, 0.15);
+}
+
 @layer base {
   :root {
-    --color-bg-subtle: #f8fafc;
-    --color-border-subtle: #e2e8f0;
+    --color-bg-subtle: #F9F8F4;
+    --color-border-subtle: #E6E2DA;
   }
 
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #F9F8F4;
+    color: #2D3A31;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  h1, h2, h3, h4 {
+    color: #2D3A31;
+  }
 }
 
-/* Custom scrollbars */
+/* Botanical smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -26,10 +55,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: #DCCFC2;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #8C9A84;
 }
