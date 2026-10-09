@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Drawer } from '../common/Drawer';
 import { Button } from '../common/Button';
 import { api } from '../../services/api';
+import { SpeechToTextButton } from '../common/SpeechToTextButton';
 import { Sparkles, Send, Quote, AlertCircle, TrendingDown, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface AskDataDrawerProps {
@@ -75,22 +76,32 @@ export const AskDataDrawer: React.FC<AskDataDrawerProps> = ({ isOpen, onClose })
           </div>
         </div>
 
-        {/* Input Form */}
+        {/* Input Form with Speech-to-Text */}
         <form onSubmit={handleFormSubmit} className="relative">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask anything about complaints, products, or locations..."
-            className="w-full pl-3 pr-10 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-sans"
+            placeholder="Ask anything about complaints, products, or locations (or speak)..."
+            className="w-full pl-3 pr-20 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-sans"
           />
-          <button
-            type="submit"
-            disabled={isLoading || !query.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-          >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </button>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <SpeechToTextButton
+              size="sm"
+              showLanguageSelector={false}
+              onTranscript={(transcript) => {
+                setQuery((prev) => (prev ? `${prev} ${transcript}` : transcript));
+              }}
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !query.trim()}
+              className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+              title="Submit query"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            </button>
+          </div>
         </form>
 
         {/* Results Stream */}

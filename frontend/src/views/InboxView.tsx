@@ -4,6 +4,7 @@ import { Button } from '../components/common/Button';
 import { SentimentBadge, PriorityBadge, EmotionBadge } from '../components/common/Badge';
 import { TableSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
+import { SpeechToTextButton } from '../components/common/SpeechToTextButton';
 import { FeedbackDetailDrawer } from '../components/modals/FeedbackDetailDrawer';
 import { FeedbackItem } from '../types';
 import { api } from '../services/api';
@@ -131,6 +132,30 @@ export const InboxView: React.FC<InboxViewProps> = ({
             <Button variant="primary" size="sm" onClick={onOpenAddModal}>
               + Add Feedback
             </Button>
+          </div>
+        </div>
+
+        {/* Voice & Keyword Search Bar */}
+        <div className="relative mb-3 flex items-center">
+          <Search className="w-4 h-4 text-[#8C9A84] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={filterSearch}
+            onChange={(e) => {
+              setFilterSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search keywords, customer names, products, issues (or speak)..."
+            className="w-full pl-9 pr-12 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-sans"
+          />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <SpeechToTextButton
+              size="sm"
+              onTranscript={(transcript) => {
+                setFilterSearch(transcript);
+                setCurrentPage(1);
+              }}
+            />
           </div>
         </div>
 
@@ -271,17 +296,30 @@ export const InboxView: React.FC<InboxViewProps> = ({
           <TableSkeleton rows={8} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="No feedback matching your filters"
-            description="Try clearing your search query or selecting 'All' across the filter drop-downs."
-            actionText="Clear Filters"
-            onAction={() => {
-              setFilterSearch('');
-              setFilterSource('all');
-              setFilterSentiment('all');
-              setFilterTopic('all');
-              setFilterPriority('all');
-              setFilterRating('all');
-              setFilterReviewed('all');
+            title={totalCount === 0 ? "No feedback in your workspace" : "No feedback matching your filters"}
+            description={
+              totalCount === 0
+                ? "Your workspace is ready. Click below to load 520+ realistic customer feedback records, recurring topics, and actionable recommendations."
+                : "Try clearing your search query or selecting 'All' across the filter drop-downs."
+            }
+            actionText={totalCount === 0 ? "Populate Sample Intelligence Data" : "Clear Filters"}
+            onAction={async () => {
+              if (totalCount === 0) {
+                try {
+                  await api.seedDemoData();
+                  loadFeedback();
+                } catch {
+                  // ignore
+                }
+              } else {
+                setFilterSearch('');
+                setFilterSource('all');
+                setFilterSentiment('all');
+                setFilterTopic('all');
+                setFilterPriority('all');
+                setFilterRating('all');
+                setFilterReviewed('all');
+              }
             }}
           />
         ) : (

@@ -234,5 +234,6 @@ def get_audit_logs(ctx: dict = Depends(get_current_user_context)):
 @router.post("/reset-demo-data")
 def reset_demo_data(ctx: dict = Depends(get_current_user_context)):
     """Resets the workspace back to the full 520+ rich demo dataset."""
-    ensure_demo_data()
-    return {"status": "success", "message": "Demo dataset restored successfully."}
+    from backend.database import seed_business_intelligence_data
+    count = seed_business_intelligence_data(ctx["business_id"], force_reseed=True)
+    return {"status": "success", "count": count, "message": f"Dataset restored successfully with {count} customer intelligence records."}

@@ -69,6 +69,11 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  seedDemoData: () =>
+    request<{ status: string; count: number; message: string }>('/auth/seed-data', {
+      method: 'POST',
+    }),
+
   // Analytics
   getOverview: (params: { days?: number; location?: string; product?: string; source?: string } = {}) => {
     const q = new URLSearchParams();

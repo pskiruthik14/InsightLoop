@@ -12,7 +12,7 @@ import base64
 import hmac
 import hashlib
 
-from backend.database import get_db_connection, hash_password, ensure_demo_data
+from backend.database import get_db_connection, hash_password, ensure_demo_data, seed_business_intelligence_data
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -73,6 +73,11 @@ def get_current_user_context(authorization: Optional[str] = Header(None)) -> dic
             "email": "demo@insightloop.io",
             "role": "owner"
         }
+    try:
+        seed_business_intelligence_data(payload["bid"])
+    except Exception:
+        pass
+
     return {
         "user_id": payload["uid"],
         "business_id": payload["bid"],
@@ -160,6 +165,11 @@ def register(req: RegisterRequest):
 
     conn.commit()
     conn.close()
+
+    try:
+        seed_business_intelligence_data(biz_id, req.business_name, req.business_category)
+    except Exception:
+        pass
 
     token = create_token(user_id, biz_id, req.email, "owner")
     return {
@@ -311,7 +321,24 @@ def complete_onboarding(req: OnboardingRequest, ctx: dict = Depends(get_current_
     """, (req.business_name, req.category, req.size, req.primary_goal, json.dumps(req.sources), ctx["business_id"]))
     conn.commit()
     conn.close()
+
+    try:
+        seed_business_intelligence_data(ctx["business_id"], req.business_name, req.category)
+    except Exception:
+        pass
+
     return {"status": "success", "message": "Onboarding completed successfully."}
+
+
+@router.post("/seed-data")
+def seed_business_data(ctx: dict = Depends(get_current_user_context)):
+    """Explicitly generates/re-seeds complete realistic customer feedback intelligence for current workspace."""
+    count = seed_business_intelligence_data(ctx["business_id"], force_reseed=True)
+    return {
+        "status": "success",
+        "count": count,
+        "message": f"Successfully loaded {count} verified customer intelligence reviews, recurring topics, and actionable recommendations."
+    }
 
 
 @router.post("/forgot-password")

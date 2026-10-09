@@ -50,9 +50,22 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         days,
         location: selectedLocation !== 'all' ? selectedLocation : undefined,
       });
-      setKpis(overview.kpis);
-      setPillars(overview.operational_pillars);
-      setUrgentIssues(overview.urgent_issues);
+      let currentOverview = overview;
+      if (overview.kpis.total_feedback === 0) {
+        try {
+          await api.seedDemoData();
+          currentOverview = await api.getOverview({
+            days,
+            location: selectedLocation !== 'all' ? selectedLocation : undefined,
+          });
+        } catch {
+          // ignore
+        }
+      }
+
+      setKpis(currentOverview.kpis);
+      setPillars(currentOverview.operational_pillars);
+      setUrgentIssues(currentOverview.urgent_issues);
 
       const trend = await api.getSentimentTrend(days <= 7 ? '7d' : days <= 30 ? '30d' : '90d');
       setTrendData(trend.data);

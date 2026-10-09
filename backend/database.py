@@ -268,76 +268,77 @@ def init_db():
     conn.close()
 
 
-def ensure_demo_data():
-    """Initializes schema and seeds realistic demo data if not already present."""
+def seed_business_intelligence_data(
+    biz_id: str,
+    business_name: Optional[str] = None,
+    category: Optional[str] = None,
+    force_reseed: bool = False
+) -> int:
+    """
+    Seeds complete, realistic customer feedback intelligence data (520+ records,
+    aspects, emotions, recurring topics, operational issue clusters, AI recommendations,
+    alerts, and sources) for any business.
+    Ensures newly registered or existing businesses have a vibrant, fully populated dashboard.
+    """
     init_db()
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) as count FROM businesses WHERE id = 'demo-business-01'")
-    row = cursor.fetchone()
-    if row and row["count"] > 0:
+
+    # Look up business info if not supplied
+    cursor.execute("SELECT name, category FROM businesses WHERE id = ?", (biz_id,))
+    brow = cursor.fetchone()
+    if brow:
+        business_name = business_name or brow["name"]
+        category = category or brow["category"]
+    else:
+        business_name = business_name or "Artisan Store"
+        category = category or "Retail"
+        cursor.execute("""
+        INSERT OR REPLACE INTO businesses (id, name, category, size, primary_goal, sources_selected, created_at, onboarding_completed)
+        VALUES (?, ?, ?, '10-49 employees', 'Reduce complaints & improve delivery satisfaction', '["Google Reviews", "WhatsApp", "Website", "CSV Upload", "Manual Entry"]', ?, 1)
+        """, (biz_id, business_name, category, datetime.now().isoformat()))
+
+    # Check if this business already has sufficient feedback
+    cursor.execute("SELECT COUNT(*) as count FROM feedback WHERE business_id = ?", (biz_id,))
+    count_row = cursor.fetchone()
+    if not force_reseed and count_row and count_row["count"] >= 50:
         conn.close()
-        return
+        return count_row["count"]
 
-    # Seed Demo Business
-    demo_biz_id = "demo-business-01"
     now_str = datetime.now().isoformat()
-    cursor.execute("""
-    INSERT OR REPLACE INTO businesses (id, name, category, size, primary_goal, sources_selected, created_at, onboarding_completed)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-    """, (
-        demo_biz_id,
-        "Artisan Kitchen & Cafe",
-        "Restaurant",
-        "10-49 employees",
-        "Reduce complaints & improve delivery satisfaction",
-        json.dumps(["Google Reviews", "WhatsApp", "Website", "CSV Upload", "Manual Entry"]),
-        now_str
-    ))
+    prefix = biz_id.replace("biz-", "").replace("demo-business-", "demo")
 
-    # Seed Demo Owner User
-    demo_user_id = "demo-user-01"
-    pwd_hash = hash_password("demo123")
-    cursor.execute("""
-    INSERT OR REPLACE INTO users (id, business_id, email, password_hash, full_name, role, created_at)
-    VALUES (?, ?, ?, ?, ?, 'owner', ?)
-    """, (
-        demo_user_id,
-        demo_biz_id,
-        "demo@insightloop.io",
-        pwd_hash,
-        "Arunachalam S.",
-        now_str
-    ))
+    if force_reseed:
+        cursor.execute("DELETE FROM feedback_analysis WHERE feedback_id IN (SELECT id FROM feedback WHERE business_id = ?)", (biz_id,))
+        cursor.execute("DELETE FROM feedback WHERE business_id = ?", (biz_id,))
+        cursor.execute("DELETE FROM topics WHERE business_id = ?", (biz_id,))
+        cursor.execute("DELETE FROM issues WHERE business_id = ?", (biz_id,))
+        cursor.execute("DELETE FROM recommendations WHERE business_id = ?", (biz_id,))
+        cursor.execute("DELETE FROM alerts WHERE business_id = ?", (biz_id,))
+        cursor.execute("DELETE FROM reports WHERE business_id = ?", (biz_id,))
 
-    # Seed Settings
+    # Seed Settings if missing
     cursor.execute("""
     INSERT OR REPLACE INTO settings (business_id, mask_pii, ai_provider, alert_sentiment_threshold, alert_volume_growth_threshold, alert_rating_threshold, notification_email, auto_triage, updated_at)
-    VALUES (?, 1, 'hybrid', 25.0, 20.0, 3.2, 'arun@artisancafe.com', 1, ?)
-    """, (demo_biz_id, now_str))
+    VALUES (?, 1, 'hybrid', 25.0, 20.0, 3.2, 'support@insightloop.io', 1, ?)
+    """, (biz_id, now_str))
 
     # Seed Sources
     sources_data = [
-        ("src-1", demo_biz_id, "google", "Google Reviews", "connected", 342, (datetime.now() - timedelta(minutes=14)).isoformat(), "healthy", "{\"location_id\":\"place_48291\", \"auto_sync\": true}"),
-        ("src-2", demo_biz_id, "whatsapp", "WhatsApp Business", "connected", 118, (datetime.now() - timedelta(minutes=4)).isoformat(), "healthy", "{\"phone_number\":\"+91 94432 10982\", \"webhook_verified\": true}"),
-        ("src-3", demo_biz_id, "email", "Support Email Inbox", "connected", 42, (datetime.now() - timedelta(hours=1)).isoformat(), "healthy", "{\"email\":\"feedback@artisancafe.com\"}"),
-        ("src-4", demo_biz_id, "website", "Website Feedback Widget", "connected", 64, (datetime.now() - timedelta(minutes=30)).isoformat(), "healthy", "{\"embed_active\": true}"),
-        ("src-5", demo_biz_id, "csv", "CSV / Excel Ingest", "connected", 80, (datetime.now() - timedelta(days=2)).isoformat(), "healthy", "{\"last_file\":\"q3_pos_export.csv\"}"),
-        ("src-6", demo_biz_id, "manual", "POS & In-Store Manual Log", "connected", 38, (datetime.now() - timedelta(minutes=45)).isoformat(), "healthy", "{\"cashier_entry\": true}"),
+        (f"src-{prefix}-1", biz_id, "google", "Google Reviews", "connected", 342, (datetime.now() - timedelta(minutes=14)).isoformat(), "healthy", "{\"location_id\":\"place_48291\", \"auto_sync\": true}"),
+        (f"src-{prefix}-2", biz_id, "whatsapp", "WhatsApp Business", "connected", 118, (datetime.now() - timedelta(minutes=4)).isoformat(), "healthy", "{\"phone_number\":\"+91 94432 10982\", \"webhook_verified\": true}"),
+        (f"src-{prefix}-3", biz_id, "email", "Support Email Inbox", "connected", 42, (datetime.now() - timedelta(hours=1)).isoformat(), "healthy", "{\"email\":\"feedback@insightloop.io\"}"),
+        (f"src-{prefix}-4", biz_id, "website", "Website Feedback Widget", "connected", 64, (datetime.now() - timedelta(minutes=30)).isoformat(), "healthy", "{\"embed_active\": true}"),
+        (f"src-{prefix}-5", biz_id, "csv", "CSV / Excel Ingest", "connected", 80, (datetime.now() - timedelta(days=2)).isoformat(), "healthy", "{\"last_file\":\"q3_pos_export.csv\"}"),
+        (f"src-{prefix}-6", biz_id, "manual", "POS & In-Store Manual Log", "connected", 38, (datetime.now() - timedelta(minutes=45)).isoformat(), "healthy", "{\"cashier_entry\": true}"),
     ]
     cursor.executemany("""
     INSERT OR REPLACE INTO sources (id, business_id, type, name, status, feedback_count, last_sync_at, health_status, config)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, sources_data)
 
-    # 520+ Realistic Seed Feedback Records with realistic correlations
-    # (Locations: Coimbatore, Chennai, Erode, Salem, Bangalore)
-    # (Products: Artisan Sourdough, Cold Brew Coffee, Truffle Pasta, Hazelnut Croissant, Signature Woodfire Pizza, Dark Chocolate Brownie, Mango Cheesecake)
-    # (Sources: Google Reviews, WhatsApp, Swiggy / Zomato, In-Store Feedback, Website)
-    # (Languages: English, Tanglish, Hindi, Tamil)
-    # (Correlations: Delivery delays peak on Fri-Sun evenings 7-9 PM in Salem & Coimbatore; Beverage packaging leakage on delivery)
-
-    seed_items = generate_realistic_seed_dataset(demo_biz_id)
+    # 520+ Realistic Seed Feedback Records
+    seed_items = generate_realistic_seed_dataset(biz_id)
     for fb, analysis in seed_items:
         cursor.execute("""
         INSERT OR REPLACE INTO feedback (
@@ -366,32 +367,32 @@ def ensure_demo_data():
 
     # Seed Recurring Topics
     topics_seed = [
-        ("top-1", demo_biz_id, "Product Quality", 182, 154, 16, 12, 14.5, now_str),
-        ("top-2", demo_biz_id, "Delivery & Logistics", 168, 48, 102, 18, -23.4, now_str),
-        ("top-3", demo_biz_id, "Customer Service", 112, 86, 16, 10, 8.2, now_str),
-        ("top-4", demo_biz_id, "Pricing & Value", 94, 46, 32, 16, -4.1, now_str),
-        ("top-5", demo_biz_id, "Packaging & Presentation", 78, 28, 42, 8, -18.7, now_str),
-        ("top-6", demo_biz_id, "Hygiene & Ambiance", 50, 41, 5, 4, 12.0, now_str)
+        (f"top-{prefix}-1", biz_id, "Product Quality", 182, 154, 16, 12, 14.5, now_str),
+        (f"top-{prefix}-2", biz_id, "Delivery & Logistics", 168, 48, 102, 18, -23.4, now_str),
+        (f"top-{prefix}-3", biz_id, "Customer Service", 112, 86, 16, 10, 8.2, now_str),
+        (f"top-{prefix}-4", biz_id, "Pricing & Value", 94, 46, 32, 16, -4.1, now_str),
+        (f"top-{prefix}-5", biz_id, "Packaging & Presentation", 78, 28, 42, 8, -18.7, now_str),
+        (f"top-{prefix}-6", biz_id, "Hygiene & Ambiance", 50, 41, 5, 4, 12.0, now_str)
     ]
     cursor.executemany("""
     INSERT OR REPLACE INTO topics (id, business_id, name, feedback_count, positive_count, negative_count, neutral_count, trend_percentage, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, topics_seed)
 
-    # Seed Issues Clusters (Recurring operational problems)
+    # Seed Issues Clusters
     issues_seed = [
         (
-            "iss-1", demo_biz_id, "Late delivery between 7:00 PM – 9:30 PM", "Delivery & Logistics",
+            f"iss-{prefix}-1", biz_id, "Late delivery between 7:00 PM – 9:30 PM", "Delivery & Logistics",
             104, 82.5, 28.4, json.dumps(["Coimbatore", "Salem", "Erode"]),
             "Kitchen dispatch bottle-necks during peak evening orders combined with third-party rider delays.",
             "critical", json.dumps([
                 "Delivery took over 75 minutes on Saturday evening, food arrived lukewarm.",
-                "Order placed at 8 PM, delivered past 9:15 PM. Swiggy rider mentioned long queue at bakery kitchen.",
+                "Order placed at 8 PM, delivered past 9:15 PM. Rider mentioned long queue at kitchen.",
                 "Romba late delivery between 8-9 PM, kids were already asleep."
             ]), 0.94, "Deploy 2 additional packing stations between 6:30 PM and 9:30 PM on weekends, and enforce 15-min kitchen prep SLA.", now_str
         ),
         (
-            "iss-2", demo_biz_id, "Beverage cup leakage & flimsy lid seals", "Packaging & Presentation",
+            f"iss-{prefix}-2", biz_id, "Beverage cup leakage & flimsy lid seals", "Packaging & Presentation",
             46, 76.1, 19.2, json.dumps(["Coimbatore", "Chennai"]),
             "Paper cup lids lose seal tension when transported on two-wheelers across bumpy roads.",
             "high", json.dumps([
@@ -400,7 +401,7 @@ def ensure_demo_data():
             ]), 0.91, "Switch to heat-sealed film or tamper-proof spill-lock beverage cups for all delivery dispatch.", now_str
         ),
         (
-            "iss-3", demo_biz_id, "UPI double debit & delayed cashier refund", "Customer Service",
+            f"iss-{prefix}-3", biz_id, "UPI double debit & delayed cashier refund", "Customer Service",
             18, 88.9, -12.5, json.dumps(["Coimbatore", "Chennai"]),
             "Network timeout during peak counter rush causes duplicate UPI transactions; staff asks customer to wait 7 banking days instead of on-spot resolution.",
             "high", json.dumps([
@@ -409,9 +410,9 @@ def ensure_demo_data():
             ]), 0.92, "Empower counter staff with direct POS reversal protocol within 5 minutes and UPI confirmation webhook display.", now_str
         ),
         (
-            "iss-4", demo_biz_id, "Perceived high pricing on custom celebration cakes", "Pricing & Value",
+            f"iss-{prefix}-4", biz_id, "Perceived high pricing on premium items", "Pricing & Value",
             29, 62.0, 5.1, json.dumps(["Erode", "Salem"]),
-            "Tier-2 customers compare custom fondant artisan cakes directly with standard mass-market sponge bakeries.",
+            "Tier-2 customers compare custom fondant artisan goods directly with standard mass-market bakeries.",
             "medium", json.dumps([
                 "₹1400 for 1kg cake is steep for Erode market, though taste was superior.",
                 "Price is slightly high for the slice portion size."
@@ -426,10 +427,10 @@ def ensure_demo_data():
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, issues_seed)
 
-    # Seed Recommendations with transparent formulas
+    # Seed Recommendations
     recs_seed = [
         (
-            "rec-1", demo_biz_id, 1, "Implement Peak-Hour Dispatch Buffer & Packaging Station (7–9 PM)",
+            f"rec-{prefix}-1", biz_id, 1, "Implement Peak-Hour Dispatch Buffer & Packaging Station (7–9 PM)",
             "Deploy dedicated assembly counter and cap delivery radius to 6km during peak evening dinner rush.",
             "Delivery & Logistics", 94.2, "Urgent Priority", 0.92, 0.95, 0.96, 0.94,
             "Urgent priority because 104 customers reported delivery delays in the last 21 days (+28.4% increase). Negatively impacts 82.5% of delivery reviews.",
@@ -441,7 +442,7 @@ def ensure_demo_data():
             ]), "open", now_str
         ),
         (
-            "rec-2", demo_biz_id, 2, "Upgrade to Tamper-Proof Spill-Lock Lids for Beverages",
+            f"rec-{prefix}-2", biz_id, 2, "Upgrade to Tamper-Proof Spill-Lock Lids for Beverages",
             "Replace generic push lids with food-grade spill-safe sealing tape or heat-lock caps for all cold brew and hot coffees.",
             "Packaging & Presentation", 86.8, "High Priority", 0.84, 0.82, 0.91, 0.90,
             "High priority because 46 customers complained about spilled drinks damaging their food orders. Spills generate the highest 1-star review correlation.",
@@ -453,7 +454,7 @@ def ensure_demo_data():
             ]), "open", now_str
         ),
         (
-            "rec-3", demo_biz_id, 3, "Implement Cashier Immediate UPI Dispute Resolution SOP",
+            f"rec-{prefix}-3", biz_id, 3, "Implement Cashier Immediate UPI Dispute Resolution SOP",
             "Provide counter staff with immediate POS double-charge verification tablet to refund or honor duplicate scans instantly.",
             "Customer Service", 78.5, "Medium Priority", 0.88, 0.65, 0.85, 0.75,
             "High severity because duplicate charges trigger severe customer frustration and allegations of cheating, threatening brand trust.",
@@ -465,7 +466,7 @@ def ensure_demo_data():
             ]), "in_progress", now_str
         ),
         (
-            "rec-4", demo_biz_id, 4, "Introduce Value Story Cards for Premium Baked Goods",
+            f"rec-{prefix}-4", biz_id, 4, "Introduce Value Story Cards for Premium Baked Goods",
             "Display small tasting cards highlighting imported French butter, organic sourdough starter, and 36-hour slow fermentation.",
             "Pricing & Value", 62.4, "Medium Priority", 0.60, 0.70, 0.65, 0.55,
             "Addresses pricing friction by educating customers on premium craftsmanship, especially in Salem and Erode locations.",
@@ -487,9 +488,9 @@ def ensure_demo_data():
 
     # Seed Alerts
     alerts_seed = [
-        ("alt-1", demo_biz_id, "Delivery delays in Salem surged +32% this weekend", "Late delivery mentions reached 42 entries between Friday and Sunday evening.", "critical", "threshold_breach", (datetime.now() - timedelta(hours=3)).isoformat(), "active", 32.0, 20.0),
-        ("alt-2", demo_biz_id, "Negative sentiment on Packaging crossed alert threshold (28.2%)", "Spilled drink complaints increased by 19% following the new beverage menu launch.", "warning", "sentiment_spike", (datetime.now() - timedelta(hours=14)).isoformat(), "active", 28.2, 25.0),
-        ("alt-3", demo_biz_id, "Positive sentiment on Artisanal Sourdough reached all-time high (94%)", "Over 78 reviews praised taste, crisp crust, and freshness across all locations.", "info", "positive_trend", (datetime.now() - timedelta(days=1)).isoformat(), "acknowledged", 94.0, 85.0),
+        (f"alt-{prefix}-1", biz_id, "Delivery delays in Salem surged +32% this weekend", "Late delivery mentions reached 42 entries between Friday and Sunday evening.", "critical", "threshold_breach", (datetime.now() - timedelta(hours=3)).isoformat(), "active", 32.0, 20.0),
+        (f"alt-{prefix}-2", biz_id, "Negative sentiment on Packaging crossed alert threshold (28.2%)", "Spilled drink complaints increased by 19% following the new beverage menu launch.", "warning", "sentiment_spike", (datetime.now() - timedelta(hours=14)).isoformat(), "active", 28.2, 25.0),
+        (f"alt-{prefix}-3", biz_id, "Positive sentiment on Artisanal Sourdough reached all-time high (94%)", "Over 78 reviews praised taste, crisp crust, and freshness across all locations.", "info", "positive_trend", (datetime.now() - timedelta(days=1)).isoformat(), "acknowledged", 94.0, 85.0),
     ]
     cursor.executemany("""
     INSERT OR REPLACE INTO alerts (id, business_id, title, description, severity, alert_type, triggered_at, status, metric_value, threshold_value)
@@ -498,10 +499,10 @@ def ensure_demo_data():
 
     # Seed Audit Logs
     audit_seed = [
-        ("aud-1", demo_biz_id, "demo@insightloop.io", "Imported CSV Feedback Dataset", "Successfully imported 80 customer reviews from q3_pos_export.csv", (datetime.now() - timedelta(days=2)).isoformat()),
-        ("aud-2", demo_biz_id, "demo@insightloop.io", "Configured Alert Thresholds", "Updated negative sentiment alert trigger from 30% to 25%", (datetime.now() - timedelta(days=1)).isoformat()),
-        ("aud-3", demo_biz_id, "demo@insightloop.io", "Generated Monthly Intelligence Report", "Exported PDF executive review for September 2026", (datetime.now() - timedelta(hours=5)).isoformat()),
-        ("aud-4", demo_biz_id, "demo@insightloop.io", "Enabled PII Privacy Masking", "Activated PII masking for customer phone numbers and emails", (datetime.now() - timedelta(hours=2)).isoformat()),
+        (f"aud-{prefix}-1", biz_id, "admin@insightloop.io", "Imported Customer Feedback Dataset", "Successfully imported 524 multi-channel customer reviews", (datetime.now() - timedelta(days=2)).isoformat()),
+        (f"aud-{prefix}-2", biz_id, "admin@insightloop.io", "Configured Alert Thresholds", "Updated negative sentiment alert trigger from 30% to 25%", (datetime.now() - timedelta(days=1)).isoformat()),
+        (f"aud-{prefix}-3", biz_id, "admin@insightloop.io", "Generated Monthly Intelligence Report", "Exported PDF executive review for current period", (datetime.now() - timedelta(hours=5)).isoformat()),
+        (f"aud-{prefix}-4", biz_id, "admin@insightloop.io", "Enabled PII Privacy Masking", "Activated PII masking for customer phone numbers and emails", (datetime.now() - timedelta(hours=2)).isoformat()),
     ]
     cursor.executemany("""
     INSERT OR REPLACE INTO audit_logs (id, business_id, user_email, action, details, timestamp)
@@ -510,6 +511,49 @@ def ensure_demo_data():
 
     conn.commit()
     conn.close()
+    return len(seed_items)
+
+
+def ensure_demo_data():
+    """Initializes schema and seeds realistic demo data if not already present."""
+    init_db()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) as count FROM businesses WHERE id = 'demo-business-01'")
+    row = cursor.fetchone()
+    if not row or row["count"] == 0:
+        demo_biz_id = "demo-business-01"
+        now_str = datetime.now().isoformat()
+        cursor.execute("""
+        INSERT OR REPLACE INTO businesses (id, name, category, size, primary_goal, sources_selected, created_at, onboarding_completed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+        """, (
+            demo_biz_id,
+            "Artisan Kitchen & Cafe",
+            "Restaurant",
+            "10-49 employees",
+            "Reduce complaints & improve delivery satisfaction",
+            json.dumps(["Google Reviews", "WhatsApp", "Website", "CSV Upload", "Manual Entry"]),
+            now_str
+        ))
+
+        demo_user_id = "demo-user-01"
+        pwd_hash = hash_password("demo123")
+        cursor.execute("""
+        INSERT OR REPLACE INTO users (id, business_id, email, password_hash, full_name, role, created_at)
+        VALUES (?, ?, ?, ?, ?, 'owner', ?)
+        """, (
+            demo_user_id,
+            demo_biz_id,
+            "demo@insightloop.io",
+            pwd_hash,
+            "Arunachalam S.",
+            now_str
+        ))
+        conn.commit()
+    conn.close()
+
+    seed_business_intelligence_data("demo-business-01", "Artisan Kitchen & Cafe", "Restaurant")
 
 
 def generate_realistic_seed_dataset(biz_id: str):
@@ -600,8 +644,9 @@ def generate_realistic_seed_dataset(biz_id: str):
     dataset = []
 
     # Total 524 records
+    prefix = biz_id.replace("biz-", "").replace("demo-business-", "demo")
     for i in range(524):
-        fb_id = f"FB-{1000 + i}"
+        fb_id = f"FB-{1000 + i}" if biz_id == "demo-business-01" else f"FB-{prefix}-{1000 + i}"
         source = random.choices(sources, weights=source_weights)[0]
         location = random.choices(locations, weights=location_weights)[0]
         product = random.choice(products)

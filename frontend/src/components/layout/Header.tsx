@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Plus, Upload, MessageSquareCode, Bell, Menu } from 'lucide-react';
 import { Button } from '../common/Button';
+import { SpeechToTextButton } from '../common/SpeechToTextButton';
 
 interface HeaderProps {
   searchQuery: string;
@@ -34,16 +35,24 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu className="w-5 h-5" strokeWidth={1.5} />
         </button>
 
-        {/* Global Search Bar */}
-        <div className="relative w-full">
+        {/* Global Search Bar with Voice Input */}
+        <div className="relative w-full flex items-center">
           <Search className="w-4 h-4 text-[#8C9A84] absolute left-3.5 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search feedback, topics, customers, products..."
-            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-white/90 border border-[#E6E2DA] rounded-full placeholder-[#8C9A84] text-[#2D3A31] focus:outline-none focus:ring-2 focus:ring-[#8C9A84] transition-all"
+            className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-white/90 border border-[#E6E2DA] rounded-full placeholder-[#8C9A84] text-[#2D3A31] focus:outline-none focus:ring-2 focus:ring-[#8C9A84] transition-all"
           />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <SpeechToTextButton
+              size="sm"
+              onTranscript={(transcript) => {
+                onSearchChange(transcript);
+              }}
+            />
+          </div>
         </div>
       </div>
 

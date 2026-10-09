@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { SentimentBadge, PriorityBadge } from '../common/Badge';
+import { SpeechToTextButton } from '../common/SpeechToTextButton';
 import { api } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { Sparkles, Star } from 'lucide-react';
@@ -147,18 +148,27 @@ export const ManualFeedbackModal: React.FC<ManualFeedbackModalProps> = ({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
             <label className="block text-xs font-medium text-slate-700">
               Customer Message / Review Text <span className="text-rose-500">*</span>
             </label>
-            <span className="text-[10px] text-slate-400">Supports English, Tamil, Tanglish & Hindi</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400 hidden sm:inline">Dictate in English, Tamil, Hindi</span>
+              <SpeechToTextButton
+                variant="button"
+                showLanguageSelector={true}
+                onTranscript={(transcript) => {
+                  setMessage((prev) => (prev ? `${prev} ${transcript}` : transcript));
+                }}
+              />
+            </div>
           </div>
           <textarea
             rows={3}
             required
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="e.g. Sourdough bread super ah irundhuchu but delivery romba late..."
+            placeholder="e.g. Sourdough bread super ah irundhuchu but delivery romba late... (or tap Voice Dictation to speak)"
             className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-sans"
           />
         </div>
