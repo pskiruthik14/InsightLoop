@@ -1,0 +1,10 @@
+{
+  "name": "insightloop-platform",
+  "version": "2.0.0",
+  "private": true,
+  "description": "InsightLoop - LLM-Powered Customer Feedback & Sentiment Intelligence Platform for MSMEs",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}

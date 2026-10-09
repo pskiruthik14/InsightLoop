@@ -13,8 +13,21 @@ import random
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-DB_PATH = Path(__file__).resolve().parent / "data" / "insightloop.db"
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+import shutil
+
+if os.environ.get("VERCEL"):
+    DB_DIR = Path("/tmp") / "insightloop_data"
+    DB_DIR.mkdir(parents=True, exist_ok=True)
+    DB_PATH = DB_DIR / "insightloop.db"
+    bundled_db = Path(__file__).resolve().parent / "data" / "insightloop.db"
+    if bundled_db.exists() and not DB_PATH.exists():
+        try:
+            shutil.copyfile(bundled_db, DB_PATH)
+        except Exception:
+            pass
+else:
+    DB_PATH = Path(__file__).resolve().parent / "data" / "insightloop.db"
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_db_connection() -> sqlite3.Connection:
