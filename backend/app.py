@@ -29,7 +29,10 @@ logger = logging.getLogger("InsightLoopApp")
 app = FastAPI(
     title="InsightLoop API",
     description="Customer Feedback Aggregation and Sentiment Intelligence Platform for MSMEs",
-    version="2.0.0"
+    version="2.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
 )
 
 # CORS middleware
